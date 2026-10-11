@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: nearby-worker
+    runtime: python
+    plan: free
+    autoDeploy: false
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --config gunicorn.conf.py wsgi:app
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: NEARBY_DATABASE_URL
+        sync: false

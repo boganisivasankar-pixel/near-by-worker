@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173e35">
+  <meta name="description" content="Find trusted local tradespeople and request a service with Nearby Worker.">
+  <title>Nearby Worker | Local help, right around the corner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Nearby Worker home">
+      <span class="brand-mark">N</span>
+      <span>nearby<span class="brand-light">worker</span></span>
+    </a>
+    <div class="header-note"><span class="status-dot"></span> Local help, thoughtfully found</div>
+    <div class="account-actions" id="accountActions">
+      <button class="text-button" id="requestsButton" hidden>My requests</button>
+      <button class="outline-button" id="authButton">Sign in</button>
+      <button class="account-avatar" id="accountAvatar" hidden aria-label="Sign out"></button>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro wrap">
+      <div class="intro-copy">
+        <p class="eyebrow"><span class="eyebrow-line"></span> GOOD WORK IS CLOSER THAN YOU THINK</p>
+        <h1>Get it fixed.<br><em>Get on with life.</em></h1>
+        <p class="intro-subtitle">Meet skilled people in your neighborhood, ready to lend a hand.</p>
+      </div>
+      <div class="intro-aside">
+        <span class="aside-number">01 <i>/ 05</i></span>
+        <p>From the dripping tap to the Saturday tune-up, find someone good for the job.</p>
+        <span class="aside-stroke"></span>
+      </div>
+    </section>
+
+    <section class="search-band">
+      <div class="search-layout wrap">
+        <label class="search-field">
+          <span class="field-icon search-icon" aria-hidden="true"></span>
+          <span class="search-input-wrap">
+            <span class="field-label">WHAT NEEDS DOING?</span>
+            <input id="serviceSearch" type="search" placeholder="Try “leaky faucet” or “electrician" autocomplete="off">
+          </span>
+        </label>
+        <span class="search-divider"></span>
+        <label class="search-field location-field">
+          <span class="field-icon pin-icon" aria-hidden="true"></span>
+          <span class="search-input-wrap">
+            <span class="field-label">YOUR NEIGHBORHOOD</span>
+            <input id="locationLabel" type="text" placeholder="Set your location" aria-label="Location label">
+          </span>
+        </label>
+        <button class="locate-button" id="locateButton" title="Use my current location" aria-label="Use my current location">
+          <span class="locate-icon" aria-hidden="true">◎</span>
+        </button>
+        <button class="search-button" id="searchButton">Find a pro <span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="location-options wrap">
+        <label class="radius-control">WITHIN
+          <select id="radiusFilter" aria-label="Nearby search radius">
+            <option value="5">5 km</option>
+            <option value="10" selected>10 km</option>
+            <option value="25">25 km</option>
+            <option value="50">50 km</option>
+          </select>
+        </label>
+        <details class="manual-location">
+          <summary>Enter coordinates manually</summary>
+          <div class="manual-location-fields">
+            <label>Latitude<input id="manualLatitude" type="number" min="-90" max="90" step="any" inputmode="decimal" placeholder="e.g. 17.3850"></label>
+            <label>Longitude<input id="manualLongitude" type="number" min="-180" max="180" step="any" inputmode="decimal" placeholder="e.g. 78.4867"></label>
+            <button id="applyManualLocation" type="button">Use coordinates</button>
+          </div>
+        </details>
+      </div>
+      <div class="location-message wrap" id="locationMessage" aria-live="polite"></div>
+    </section>
+
+    <section class="directory wrap">
+      <div class="category-heading">
+        <div>
+          <p class="eyebrow small-eyebrow">A GOOD PLACE TO START</p>
+          <h2>What can we help with?</h2>
+        </div>
+        <button class="clear-filter" id="clearFilter">View everyone <span aria-hidden="true">↗</span></button>
+      </div>
+      <nav class="category-list" id="categoryList" aria-label="Service categories">
+        <button class="category-chip active" data-category=""><span class="category-symbol">◎</span> All services</button>
+        <button class="category-chip" data-category="electrician"><span class="category-symbol">EL</span> Electrical</button>
+        <button class="category-chip" data-category="plumber"><span class="category-symbol">PL</span> Plumbing</button>
+        <button class="category-chip" data-category="carpenter"><span class="category-symbol">CA</span> Carpentry</button>
+        <button class="category-chip" data-category="mechanic"><span class="category-symbol">ME</span> Mechanics</button>
+        <button class="category-chip" data-category="cleaner"><span class="category-symbol">CL</span> Cleaning</button>
+      </nav>
+
+      <div class="results-heading">
+        <div>
+          <span class="results-kicker">YOUR LOCAL SHORTLIST</span>
+          <h2 id="resultsTitle">Good people, nearby</h2>
+        </div>
+        <label class="sort-control">Sort by
+          <select id="sortSelect" aria-label="Sort workers">
+            <option value="distance">Closest first</option>
+            <option value="rating">Top rated</option>
+            <option value="price">Price: low to high</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="results-meta"><span id="resultCount">Finding local pros…</span><span class="example-note">Example profiles &amp; prices</span></div>
+      <div class="worker-grid" id="workerGrid" aria-live="polite"></div>
+      <div class="empty-state" id="emptyState" hidden>
+        <span class="empty-mark">—</span>
+        <h3>No one in this shortlist just yet.</h3>
+        <p>Try another service or widen your search.</p>
+      </div>
+    </section>
+
+    <section class="catalogue-section wrap" id="partsCatalogue">
+      <div class="catalogue-intro">
+        <div>
+          <p class="eyebrow small-eyebrow">PLAN THE REPAIR BEFORE IT STARTS</p>
+          <h2>Parts, labour &amp; a clearer estimate.</h2>
+          <p>Browse administrator-verified seller prices and stock, then build an itemized quote.</p>
+        </div>
+        <div class="sample-price-stamp"><span>₹</span><div><strong>Verified INR catalog</strong><small>Unavailable until verified entries exist</small></div></div>
+      </div>
+
+      <div class="catalogue-tools">
+        <label class="parts-search">
+          <span class="field-icon search-icon" aria-hidden="true"></span>
+          <input id="partsSearch" type="search" placeholder="Search parts, e.g. capacitor or pipe" autocomplete="off" aria-label="Search catalogue parts">
+        </label>
+        <span class="catalogue-currency">INR prices · seller stock status · update time</span>
+      </div>
+      <nav class="parts-categories" id="partsCategories" aria-label="Filter spare parts by category"></nav>
+
+      <div class="catalogue-layout">
+        <div class="parts-browser">
+          <div class="parts-browser-heading"><span id="partsCount">Loading verified inventory…</span><span>Price / stock / seller</span></div>
+          <div class="parts-grid" id="partsGrid" aria-live="polite"></div>
+          <div class="empty-state parts-empty" id="partsEmpty" hidden><span class="empty-mark">—</span><h3>No matching parts.</h3><p>Try another name or category.</p></div>
+        </div>
+
+        <aside class="estimate-panel" aria-labelledby="estimateTitle">
+          <div class="estimate-heading"><div><p class="eyebrow small-eyebrow">REPAIR COST ESTIMATOR</p><h3 id="estimateTitle">Your estimate</h3></div><button class="estimate-clear" id="clearEstimate" type="button">Clear</button></div>
+          <label class="estimate-label" for="estimateWorker">Send request to</label>
+          <select class="estimate-select" id="estimateWorker"><option value="">Choose an available worker</option></select>
+          <label class="estimate-label" for="repairService">Worker labour quote</label>
+          <select class="estimate-select" id="repairService" disabled><option value="">Choose a worker first</option></select>
+          <div class="estimate-items-heading"><span>PARTS IN THIS ESTIMATE</span><span id="estimateItemCount">0 items</span></div>
+          <div class="estimate-items" id="estimateItems"><p class="estimate-empty">Add parts from the catalogue to begin.</p></div>
+          <div class="labour-control"><label for="labourCharge">Worker quote · INR</label><div class="rupee-input"><span>₹</span><input id="labourCharge" type="number" value="0" readonly></div></div>
+          <div class="estimate-totals">
+            <div><span>Verified parts subtotal</span><strong id="partsSubtotal">₹0</strong></div>
+            <div><span>Labour</span><strong id="labourTotal">₹350</strong></div>
+            <div class="grand-total"><span>Itemized total</span><strong id="grandTotal">₹0</strong></div>
+          </div>
+          <button class="estimate-book" id="useEstimate" type="button">Use estimate in a booking <span aria-hidden="true">↗</span></button>
+          <p class="estimate-disclaimer">Parts prices and stock are shown only when an administrator has verified them with the seller. Worker labour rates are quotes from that worker. Stock is not reserved until the worker confirms it.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="join-strip">
+      <div class="wrap join-inner">
+        <div><p class="eyebrow small-eyebrow">FOR THE PEOPLE WHO GET IT DONE</p><h2>Your skill belongs in the neighborhood.</h2></div>
+        <button class="join-button" id="workerJoinButton">Join as a worker <span aria-hidden="true">↗</span></button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer wrap">
+    <a class="brand footer-brand" href="/"><span class="brand-mark">N</span><span>nearby<span class="brand-light">worker</span></span></a>
+    <p>Neighbors helping neighbors, one good job at a time.</p>
+    <span class="footer-copyright">Sample prototype · All prices are examples</span>
+  </footer>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      <div id="modalContent"></div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
